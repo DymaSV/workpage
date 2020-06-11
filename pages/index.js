@@ -1,6 +1,8 @@
 import Grid from '@material-ui/core/Grid';
 import Image from './image'
 import Paper from '@material-ui/core/Paper';
+import Button from '@material-ui/core/Button';
+import { makeStyles } from '@material-ui/core/styles';
 
 export default function Home() {
   return (
@@ -44,16 +46,27 @@ class CompareImages extends React.Component {
         container
         direction="row"
         justify="center"
-        alignItems="center"
-        spacing={0}>
-        <Paper elevation={1}>
-          <input type="file" onChange={this.handleFirstImageSubmit} />
-        </Paper>
-        <Paper elevation={1}>
-          <input type="file" onChange={this.handleSecondImageSubmit} />
-        </Paper>
+        alignItems="center">
+        <Grid item xs={6} style={{textAlign: "center"}}>
+          <Paper elevation={1}>
+            <Button variant="contained" component="label" color="primary" size="small">
+              Upload First Image
+            <input type="file" onChange={this.handleFirstImageSubmit} style={{ display: "none" }} />
+            </Button>
+          </Paper>
+        </Grid>
+        <Grid item xs={6} style={{textAlign: "center"}}>
+          <Paper elevation={1}>
+            <Button variant="contained" component="label" color="primary" size="small">
+              Upload Second Image
+            <input type="file" onChange={this.handleSecondImageSubmit} style={{ display: "none" }} />
+            </Button>
+          </Paper>
+        </Grid>
+        <Grid item xs={12} style={{padding: 5}}>
+          <Image src1={this.state.src1} src2={this.state.src2} />
+        </Grid>
       </Grid>
-      <Image src1={this.state.src1} src2={this.state.src2} />
     </div >
   }
 }
