@@ -32,12 +32,12 @@ class CompareImages extends React.Component {
     let file = event.target.files[0]
     var reader = new window.FileReader();
     if (file) {
-      var url = reader.readAsDataURL(file);
+      reader.readAsDataURL(file);
     }
     console.log(reader)
-    reader.onloadend = function (e) {
+    reader.onloadend = () => {
       this.setState({ src2: [reader.result] });
-    }.bind(this);
+    }
   }
 
   render() {
