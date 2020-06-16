@@ -9,12 +9,15 @@
   },
   "dependencies": {
     "@material-ui/core": "^4.10.1",
+    "firebase": "^7.15.1",
     "next": "9.4.4",
     "react": "16.13.1",
-    "react-dom": "16.13.1"
+    "react-dom": "16.13.1",
+    "react-router-dom": "^5.2.0"
   },
   "devDependencies": {
     "@types/node": "^14.0.13",
+    "dotenv": "^8.2.0",
     "typescript": "^3.9.5"
   }
 }
