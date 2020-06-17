@@ -5,9 +5,7 @@ import Button from '@material-ui/core/Button';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import NativeSelect from '@material-ui/core/NativeSelect';
 import { makeStyles } from '@material-ui/core/styles';
-
-import firebase from "@firebase/app";
-import "@firebase/storage"
+import { firebaseStorage } from "./init-firebase";
 
 class CompareImages extends React.Component {
     constructor(props) {
@@ -19,14 +17,6 @@ class CompareImages extends React.Component {
             listSelectFirst: [],
             listSelectSecond: [],
             loading: false,
-        };
-        this.config = {
-            apiKey: process.env.REACT_APP_FIREBASE_KEY,
-            authDomain: process.env.REACT_APP_FIREBASE_DOMAIN,
-            databaseURL: process.env.REACT_APP_FIREBASE_DATABASE,
-            projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
-            storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
-            messagingSenderId: process.env.REACT_APP_FIREBASE_SENDER_ID
         };
     }
 
@@ -56,7 +46,7 @@ class CompareImages extends React.Component {
     }
 
     readFromFirebase = () => {
-        const storageRef = firebase.storage().ref();
+        const storageRef = firebaseStorage.ref();
         let id = 0;
         let metaArray = []
         storageRef.listAll().then((result) => {
@@ -109,7 +99,7 @@ class CompareImages extends React.Component {
 
     loadToFirebase = () => {
         if (this.state.file) {
-            const storageRef = firebase.storage().ref();
+            const storageRef = firebaseStorage.ref();
             const fileRef = storageRef.child(this.state.file.name);
             this.setState({
                 loading: true
@@ -128,8 +118,7 @@ class CompareImages extends React.Component {
 
     handleFirstSelectChange = (event) => {
         if (event.target.value) {
-            var storage = firebase.storage();
-            storage.ref().child(event.target.value).getDownloadURL().then((url) => {
+            firebaseStorage.ref().child(event.target.value).getDownloadURL().then((url) => {
                 this.setState({ src1: url });
             }).catch(function (error) {
                 console.log(error)
@@ -139,8 +128,7 @@ class CompareImages extends React.Component {
 
     handleSecondSelectChange = (event) => {
         if (event.target.value) {
-            var storage = firebase.storage();
-            storage.ref().child(event.target.value).getDownloadURL().then((url) => {
+            firebaseStorage.ref().child(event.target.value).getDownloadURL().then((url) => {
                 this.setState({ src2: url });
             }).catch(function (error) {
                 console.log(error)
