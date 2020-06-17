@@ -14,8 +14,8 @@ class CompareImages extends React.Component {
             src1: '',
             src2: '',
             file: '',
-            listSelectFirst: [],
-            listSelectSecond: [],
+            listSelectFirst: [<option key={0} aria-label="None" value="">Past</option>],
+            listSelectSecond: [<option key={0} aria-label="None" value="">Recent</option>],
             loading: false,
         };
     }
@@ -69,7 +69,7 @@ class CompareImages extends React.Component {
 
                         id = 1;
                         this.setState({
-                            listSelectFirst: [<option key={0} aria-label="None" value="">From last</option>]
+                            listSelectFirst: [<option key={0} aria-label="None" value="">Past</option>]
                         });
                         metaArray.forEach((item) => {
                             id++;
@@ -80,7 +80,7 @@ class CompareImages extends React.Component {
 
                         id = 1;
                         this.setState({
-                            listSelectSecond: [<option key={0} aria-label="None" value="">From first</option>]
+                            listSelectSecond: [<option key={0} aria-label="None" value="">Recent</option>]
                         });
                         metaArray.reverse().forEach((item) => {
                             id++;
