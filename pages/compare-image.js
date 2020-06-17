@@ -66,7 +66,15 @@ class CompareImages extends React.Component {
                         metaArray.push(metadata);
                         console.log(metadata)
                         metaArray.sort((a, b) => {
-                            return new Date(a.timeCreated) > new Date(b.timeCreated);
+                            var dateA = new Date(a.timeCreated);
+                            var dateB = new Date(b.timeCreated);
+                            if (dateA < dateB) {
+                                return -1;
+                            }
+                            if (dateA > dateB) {
+                                return 1;
+                            }
+                            return 0;
                         })
 
                         id = 1;
