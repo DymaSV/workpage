@@ -18,8 +18,6 @@ class CompareImages extends React.Component {
             file: '',
             listSelectFirst: [],
             listSelectSecond: [],
-            metadataFirst: [],
-            metadataSecond: [],
             loading: false,
         };
         this.config = {
@@ -60,45 +58,43 @@ class CompareImages extends React.Component {
     readFromFirebase = () => {
         const storageRef = firebase.storage().ref();
         let id = 0;
-        // this.setState({
-        //     listSelectFirst: [<option key={id} aria-label="None" value="" />]
-        // });
-        let array = [];
+        let metaArray = []
         storageRef.listAll().then((result) => {
             result.items.forEach((imageRef) => {
                 imageRef.getMetadata()
                     .then((metadata) => {
-                        id = 0;
-                        this.setState({
-                            listSelectFirst: [],
-                            listSelectSecond: []
-                        });
-                        array.push(metadata);
-
-                        array.sort(function (a, b) {
+                        metaArray.push(metadata);
+                        console.log(metadata)
+                        metaArray.sort((a, b) => {
                             return new Date(a.timeCreated) > new Date(b.timeCreated);
-                        }).forEach((item) => {
+                        })
+
+                        id = 1;
+                        this.setState({
+                            listSelectFirst: [<option key={0} aria-label="None" value="">From last</option>]
+                        });
+                        metaArray.forEach((item) => {
                             id++;
                             this.setState({
                                 listSelectFirst: [...this.state.listSelectFirst, <option key={id} value={item.fullPath}>{item.fullPath}</option>]
                             });
-                        });
+                        })
 
-                        id = 0;
-                        array.reverse().forEach((item) => {
+                        id = 1;
+                        this.setState({
+                            listSelectSecond: [<option key={0} aria-label="None" value="">From first</option>]
+                        });
+                        metaArray.reverse().forEach((item) => {
                             id++;
                             this.setState({
                                 listSelectSecond: [...this.state.listSelectSecond, <option key={id} value={item.fullPath}>{item.fullPath}</option>]
                             });
-                        });
-                    })
-                    .then(() => {
+                        })
 
                     })
                     .catch(function (error) {
                         console.log(error);
                     });
-
             });
         });
     }
@@ -123,21 +119,25 @@ class CompareImages extends React.Component {
     }
 
     handleFirstSelectChange = (event) => {
-        var storage = firebase.storage();
-        storage.ref().child(event.target.value).getDownloadURL().then((url) => {
-            this.setState({ src1: url });
-        }).catch(function (error) {
-            console.log(error)
-        });
+        if (event.target.value) {
+            var storage = firebase.storage();
+            storage.ref().child(event.target.value).getDownloadURL().then((url) => {
+                this.setState({ src1: url });
+            }).catch(function (error) {
+                console.log(error)
+            });
+        }
     }
 
     handleSecondSelectChange = (event) => {
-        var storage = firebase.storage();
-        storage.ref().child(event.target.value).getDownloadURL().then((url) => {
-            this.setState({ src2: url });
-        }).catch(function (error) {
-            console.log(error)
-        });
+        if (event.target.value) {
+            var storage = firebase.storage();
+            storage.ref().child(event.target.value).getDownloadURL().then((url) => {
+                this.setState({ src2: url });
+            }).catch(function (error) {
+                console.log(error)
+            });
+        }
     }
 
     render() {
@@ -169,7 +169,7 @@ class CompareImages extends React.Component {
                     </Button>
                 </Grid>
                 <Grid item xs={2} style={{ textAlign: "center" }}>
-                    <Button variant="contained" component="label" color="secondary" size="small">
+                    <Button variant="contained" component="label" color="secondary" size="small" disabled={!this.state.src2 ? true : false}>
                         Load to Firebase
                             <input onClick={this.loadToFirebase} style={{ display: "none" }} />
                     </Button>
