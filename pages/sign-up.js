@@ -2,11 +2,7 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
+import DialogMessage from './dialog-message';
 
 import firebase from "@firebase/app";
 import "@firebase/auth";
@@ -24,7 +20,7 @@ class SingUp extends React.Component {
             messagingSenderId: process.env.REACT_APP_FIREBASE_SENDER_ID,
             appId: process.env.REACT_APP_FIREBASE_APP_ID
         };
-        this.state = { email: '', password: '', open: false, error:'' };
+        this.state = { email: '', password: '', open: false, error: '' };
     }
 
     componentDidMount() {
@@ -55,7 +51,7 @@ class SingUp extends React.Component {
         this.setState({ password: event.target.value });
     }
 
-    handleClose = () => {
+    handleDialogMessageClose = () => {
         this.setState({ open: false, error: '' });
         event.preventDefault();
     };
@@ -98,23 +94,11 @@ class SingUp extends React.Component {
                     </Grid>
                 </Paper>
             </Grid>
-            <Dialog
-                open={this.state.open}
-                onClose={this.handleClose}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description">
-                <DialogTitle id="alert-dialog-title">{"Error"}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        {this.state.error}
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={this.handleClose} color="primary" autoFocus>
-                        OK
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <DialogMessage open={this.state.open}
+                title={"Error"}
+                error={this.state.error}
+                handleClose={this.handleDialogMessageClose}
+            />
         </div>
     }
 }
