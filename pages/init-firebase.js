@@ -14,3 +14,4 @@ const config = {
 
 export const firebaseInstance =  !firebase.apps.length ? firebase.initializeApp(config) : firebase.app();
 export const firebaseStorage = firebaseInstance.storage();
+export default firebase;
