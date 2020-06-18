@@ -31,6 +31,7 @@ class CompareImages extends React.Component {
 
     componentDidMount() {
         this.readFromFirebase()
+        console.log("asdasd ")
     }
 
     handleSecondImageSubmit = (event) => {
@@ -144,29 +145,29 @@ class CompareImages extends React.Component {
                 justify="center"
                 alignItems="center"
                 spacing={3}>
-                <Grid item xs={4} style={{ textAlign: "center" }}>
+                <Grid item xs={12} sm={4} style={{ textAlign: "center" }}>
                     <Paper elevation={1} style={{ width: "100%" }}>
                         <NativeSelect onChange={this.handleFirstSelectChange} style={{ width: "100%" }}>
                             {this.state.listSelectFirst}
                         </NativeSelect>
                     </Paper>
                 </Grid>
-                <Grid item xs={4} style={{ textAlign: "center" }}>
+                <Grid item xs={12} sm={4} style={{ textAlign: "center" }}>
                     <Paper elevation={1} style={{ width: "100%" }}>
                         <NativeSelect onChange={this.handleSecondSelectChange} style={{ width: "100%" }}>
                             {this.state.listSelectSecond}
                         </NativeSelect>
                     </Paper>
                 </Grid>
-                <Grid item xs={2} style={{ textAlign: "center" }}>
+                <Grid item xs={4} sm={2} style={{ textAlign: "center" }}>
                     <Button variant="contained" component="label" color="primary" size="small">
-                        Upload Second Image
+                        Upload image
                             <input type="file" onChange={this.handleSecondImageSubmit} style={{ display: "none" }} />
                     </Button>
                 </Grid>
-                <Grid item xs={2} style={{ textAlign: "center" }}>
+                <Grid item xs={4} sm={2} style={{ textAlign: "center" }}>
                     <Button variant="contained" component="label" color="secondary" size="small" disabled={!this.state.src2 ? true : false}>
-                        Load to Firebase
+                        Load to storage
                             <input onClick={this.loadToFirebase} style={{ display: "none" }} />
                     </Button>
                 </Grid>
