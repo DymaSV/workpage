@@ -1,8 +1,8 @@
 
-import SingUp from './sign-up'
-import CompareImages from './compare-image'
+import SingUp from '../components/sign-up'
+import CompareImages from '../components/compare-image'
 
-export default function Home() {
+export default function Index() {
   return (
     <App />
   )
