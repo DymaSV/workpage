@@ -3,7 +3,7 @@ import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import Button from '@material-ui/core/Button';
 import DialogMessage from './dialog-message';
-import { firebaseInstance } from "./init-firebase";
+import Firebase from "./init-firebase";
 
 class SingUp extends React.Component {
     constructor(props) {
@@ -13,7 +13,7 @@ class SingUp extends React.Component {
     }
 
     handleSignUp = (event) => {
-        firebaseInstance.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
+        Firebase.firebaseInstance.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
             .then(() => {
                 this.setState({ open: false, error: '' });
                 this.props.handelAuth(true);
