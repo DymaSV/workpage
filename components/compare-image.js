@@ -138,7 +138,7 @@ class CompareImages extends React.Component {
 
     handleFirstSelectChange = (event) => {
         if (event.target.value) {
-            firebaseStorage.ref(this.state.rootFolder).child(event.target.value).getDownloadURL().then((url) => {
+            firebaseStorage.ref().child(event.target.value).getDownloadURL().then((url) => {
                 this.setState({ src1: url });
             }).catch(function (error) {
                 console.log(error)
@@ -148,7 +148,7 @@ class CompareImages extends React.Component {
 
     handleSecondSelectChange = (event) => {
         if (event.target.value) {
-            firebaseStorage.ref(this.state.rootFolder).child(event.target.value).getDownloadURL().then((url) => {
+            firebaseStorage.ref().child(event.target.value).getDownloadURL().then((url) => {
                 this.setState({ src2: url });
             }).catch(function (error) {
                 console.log(error)
