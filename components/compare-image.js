@@ -4,8 +4,16 @@ import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import NativeSelect from '@material-ui/core/NativeSelect';
+import TextField from '@material-ui/core/TextField';
+
+import ExpansionPanel from '@material-ui/core/ExpansionPanel';
+import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+
 import { makeStyles } from '@material-ui/core/styles';
 import { firebaseStorage } from "../services/init-firebase";
+import { sortByDate } from "../components/utils";
 
 class CompareImages extends React.Component {
     constructor(props) {
@@ -14,9 +22,13 @@ class CompareImages extends React.Component {
             src1: '',
             src2: '',
             file: '',
-            listSelectFirst: [<option key={0} aria-label="None" value="">Past</option>],
-            listSelectSecond: [<option key={0} aria-label="None" value="">Recent</option>],
+            listSelectFirst: [<option key={"root_0"} aria-label="None" value="">Past</option>],
+            listSelectSecond: [<option key={"second_0"} aria-label="None" value="">Recent</option>],
+            listOfFolders: [<option key={"first_0"} aria-label="None" value="">Folders</option>],
             loading: false,
+            rootFolder: this.props.rootFolder,
+            choseFolder: ''
+
         };
     }
 
@@ -30,8 +42,7 @@ class CompareImages extends React.Component {
     }));
 
     componentDidMount() {
-        this.readFromFirebase()
-        console.log("asdasd ")
+        this.readFoldersFirebase()
     }
 
     handleSecondImageSubmit = (event) => {
@@ -46,61 +57,57 @@ class CompareImages extends React.Component {
         }
     }
 
-    readFromFirebase = () => {
-        const storageRef = firebaseStorage.ref();
-        let id = 0;
-        let metaArray = []
-        storageRef.listAll().then((result) => {
-            result.items.forEach((imageRef) => {
-                imageRef.getMetadata()
-                    .then((metadata) => {
-                        metaArray.push(metadata);
-                        console.log(metadata)
-                        metaArray.sort((a, b) => {
-                            var dateA = new Date(a.timeCreated);
-                            var dateB = new Date(b.timeCreated);
-                            if (dateA < dateB) {
-                                return -1;
-                            }
-                            if (dateA > dateB) {
-                                return 1;
-                            }
-                            return 0;
-                        })
-
-                        id = 1;
-                        this.setState({
-                            listSelectFirst: [<option key={0} aria-label="None" value="">Past</option>]
-                        });
-                        metaArray.forEach((item) => {
-                            id++;
-                            this.setState({
-                                listSelectFirst: [...this.state.listSelectFirst, <option key={id} value={item.fullPath}>{item.fullPath}</option>]
-                            });
-                        })
-
-                        id = 1;
-                        this.setState({
-                            listSelectSecond: [<option key={0} aria-label="None" value="">Recent</option>]
-                        });
-                        metaArray.reverse().forEach((item) => {
-                            id++;
-                            this.setState({
-                                listSelectSecond: [...this.state.listSelectSecond, <option key={id} value={item.fullPath}>{item.fullPath}</option>]
-                            });
-                        })
-
-                    })
-                    .catch(function (error) {
-                        console.log(error);
-                    });
+    readFoldersFirebase = async () => {
+        const storageRef = firebaseStorage.ref(this.state.rootFolder);
+        let id = 1;
+        this.setState({
+            listOfFolders: [<option key={"root_0"} aria-label="None" value="">Folders</option>]
+        });
+        let listAll = await storageRef.listAll();
+        listAll.prefixes.forEach((item) => {
+            this.setState({
+                listOfFolders: [...this.state.listOfFolders, <option key={"root_" + id} value={item.fullPath}>{item.fullPath}</option>]
             });
+            id++;
+        });
+    }
+
+    readFromFirebase = async (folderPath) => {
+        if (!folderPath) {
+            return;
+        }
+        const storageRef = firebaseStorage.ref(folderPath);
+        let id = 1;
+        let metaArray = []
+        this.setState({
+            listSelectSecond: [<option key={"second_0"} aria-label="None" value="">Recent</option>],
+            listSelectFirst: [<option key={"first_0"} aria-label="None" value="">Past</option>],
+        });
+        let listAll = await storageRef.listAll();
+        listAll.items.forEach(async (imageRef) => {
+            let metadata = await imageRef.getMetadata();
+            metaArray.push(metadata);
+            metaArray.sort(sortByDate())
+            metaArray.forEach((item) => {
+                this.setState({
+                    listSelectFirst: [...this.state.listSelectFirst, <option key={"first_" + id} value={item.fullPath}>{item.fullPath}</option>]
+                });
+                id++;
+            })
+            id = 1;
+            metaArray.reverse().forEach((item) => {
+                this.setState({
+                    listSelectSecond: [...this.state.listSelectSecond, <option key={"second_" + id} value={item.fullPath}>{item.fullPath}</option>]
+                });
+                id++;
+            })
+
         });
     }
 
     loadToFirebase = () => {
         if (this.state.file) {
-            const storageRef = firebaseStorage.ref();
+            const storageRef = firebaseStorage.ref(this.state.choseFolder);
             const fileRef = storageRef.child(this.state.file.name);
             this.setState({
                 loading: true
@@ -108,7 +115,7 @@ class CompareImages extends React.Component {
             fileRef.put(this.state.file)
                 .then((snap) => {
                     console.log('upload successful', snap);
-                    this.readFromFirebase();
+                    this.readFromFirebase(this.state.choseFolder);
                     this.setState({
                         loading: false
                     });
@@ -117,9 +124,22 @@ class CompareImages extends React.Component {
         }
     }
 
+    handleFolderSelectChange = (event) => {
+        if (event.target.value) {
+            this.setState({ choseFolder: event.target.value });
+            this.readFromFirebase(event.target.value + '/')
+        } else {
+            this.setState({
+                choseFolder: '',
+                listSelectSecond: [<option key={"second_0"} aria-label="None" value="">Recent</option>],
+                listSelectFirst: [<option key={"first_0"} aria-label="None" value="">Past</option>],
+            });
+        }
+    }
+
     handleFirstSelectChange = (event) => {
         if (event.target.value) {
-            firebaseStorage.ref().child(event.target.value).getDownloadURL().then((url) => {
+            firebaseStorage.ref(this.state.rootFolder).child(event.target.value).getDownloadURL().then((url) => {
                 this.setState({ src1: url });
             }).catch(function (error) {
                 console.log(error)
@@ -129,7 +149,7 @@ class CompareImages extends React.Component {
 
     handleSecondSelectChange = (event) => {
         if (event.target.value) {
-            firebaseStorage.ref().child(event.target.value).getDownloadURL().then((url) => {
+            firebaseStorage.ref(this.state.rootFolder).child(event.target.value).getDownloadURL().then((url) => {
                 this.setState({ src2: url });
             }).catch(function (error) {
                 console.log(error)
@@ -139,47 +159,65 @@ class CompareImages extends React.Component {
 
     render() {
         return <div>
-            <Grid
-                container
-                direction="row"
-                justify="center"
-                alignItems="center"
-                spacing={3}>
-                <Grid item xs={12} sm={4} style={{ textAlign: "center" }}>
-                    <Paper elevation={1} style={{ width: "100%" }}>
-                        <NativeSelect onChange={this.handleFirstSelectChange} style={{ width: "100%" }}>
-                            {this.state.listSelectFirst}
-                        </NativeSelect>
-                    </Paper>
-                </Grid>
-                <Grid item xs={12} sm={4} style={{ textAlign: "center" }}>
-                    <Paper elevation={1} style={{ width: "100%" }}>
-                        <NativeSelect onChange={this.handleSecondSelectChange} style={{ width: "100%" }}>
-                            {this.state.listSelectSecond}
-                        </NativeSelect>
-                    </Paper>
-                </Grid>
-                <Grid item xs={4} sm={2} style={{ textAlign: "center" }}>
-                    <Button variant="contained" component="label" color="primary" size="small">
-                        Upload image
+            <ExpansionPanel>
+                <ExpansionPanelSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    aria-controls="panel1a-content"
+                    id="panel1a-header">
+                    {"Tools"}
+                </ExpansionPanelSummary>
+                <ExpansionPanelDetails>
+                    <Grid
+                        container
+                        direction="row"
+                        justify="center"
+                        alignItems="center"
+                        spacing={3}>
+                        <Grid item xs={12} sm={4} style={{ textAlign: "center" }}>
+                            <Paper elevation={1} style={{ width: "100%" }}>
+                                <NativeSelect onChange={this.handleFirstSelectChange} style={{ width: "100%" }} disabled={!this.state.choseFolder ? true : false}>
+                                    {this.state.listSelectFirst}
+                                </NativeSelect>
+                            </Paper>
+                        </Grid>
+                        <Grid item xs={12} sm={4} style={{ textAlign: "center" }}>
+                            <Paper elevation={1} style={{ width: "100%" }}>
+                                <NativeSelect onChange={this.handleSecondSelectChange} style={{ width: "100%" }} disabled={!this.state.choseFolder ? true : false}>
+                                    {this.state.listSelectSecond}
+                                </NativeSelect>
+                            </Paper>
+                        </Grid>
+                        <Grid item xs={4} sm={2} style={{ textAlign: "center" }}>
+                            <Button variant="contained" component="label" color="primary" size="small">
+                                Upload image
                             <input type="file" onChange={this.handleSecondImageSubmit} style={{ display: "none" }} />
-                    </Button>
-                </Grid>
-                <Grid item xs={4} sm={2} style={{ textAlign: "center" }}>
-                    <Button variant="contained" component="label" color="secondary" size="small" disabled={!this.state.src2 ? true : false}>
-                        Load to storage
+                            </Button>
+                        </Grid>
+                        <Grid item xs={4} sm={2} style={{ textAlign: "center" }}>
+                            <Button variant="contained" component="label" color="secondary" size="small" disabled={!this.state.src2 ? true : false}>
+                                Load to storage
                             <input onClick={this.loadToFirebase} style={{ display: "none" }} />
-                    </Button>
-                </Grid>
-                <Grid item xs={12} style={{ padding: 5, textAlign: "center" }}>
-                    {this.state.loading ? <div className={this.classes.root}>
-                        <LinearProgress />
-                        <LinearProgress color="primary" />
-                    </div> : <div></div>}
-                </Grid>
-                <Grid item xs={12} style={{ padding: 5 }}>
-                    <Image src1={this.state.src1} src2={this.state.src2} />
-                </Grid>
+                            </Button>
+                        </Grid>
+                        <Grid item xs={12} sm={4} style={{ textAlign: "center" }}>
+                            <NativeSelect onChange={this.handleFolderSelectChange} style={{ width: "100%" }}>
+                                {this.state.listOfFolders}
+                            </NativeSelect>
+                        </Grid>
+                        <Grid item xs={12} sm={4} style={{ textAlign: "center" }}>
+                            <TextField id="outline" label="Photo name" variant="outlined" size="small" />
+                        </Grid>
+                        <Grid item xs={12} style={{ padding: 5, textAlign: "center" }}>
+                            {this.state.loading ? <div className={this.classes.root}>
+                                <LinearProgress />
+                                <LinearProgress color="primary" />
+                            </div> : <div></div>}
+                        </Grid>
+                    </Grid>
+                </ExpansionPanelDetails>
+            </ExpansionPanel>
+            <Grid item xs={12} style={{ padding: 5 }}>
+                <Image src1={this.state.src1} src2={this.state.src2} />
             </Grid>
         </div >
     }

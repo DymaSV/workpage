@@ -8,7 +8,7 @@ import { firebaseInstance } from "../services/init-firebase";
 class SingUp extends React.Component {
     constructor(props) {
         super(props);
-        
+
         this.state = { email: '', password: '', open: false, error: '' };
     }
 
@@ -16,12 +16,12 @@ class SingUp extends React.Component {
         firebaseInstance.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
             .then(() => {
                 this.setState({ open: false, error: '' });
-                this.props.handelAuth(true);
+                this.props.handelAuth(this.state.email);
             })
             .catch((ex) => {
                 this.setState({ open: true, error: ex.message });
                 console.log(ex)
-                this.props.handelAuth(false);
+                this.props.handelAuth(null);
             });
         event.preventDefault();
     }

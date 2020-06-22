@@ -11,16 +11,22 @@ export default function Index() {
 export class App extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { isAuth: false };
+    this.state = { isAuth: false, rootFolder: null };
   }
   handelAuth = (event) => {
-    this.setState({ isAuth: event });
+    if (event) {
+      let res = event.split("@");
+      this.setState({ isAuth: true, rootFolder: res[0] });
+    } else {
+      this.setState({ isAuth: false });
+      console.log("Logon s not correct!")
+    }
   }
 
   render() {
     if (this.state.isAuth) {
       return (
-        <CompareImages />
+        <CompareImages rootFolder={this.state.rootFolder} />
       )
     } else {
       return (
