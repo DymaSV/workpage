@@ -84,25 +84,24 @@ class CompareImages extends React.Component {
             listSelectFirst: [<option key={"first_0"} aria-label="None" value="">Past</option>],
         });
         let listAll = await storageRef.listAll();
-        listAll.items.forEach(async (imageRef) => {
-            let metadata = await imageRef.getMetadata();
+        for (const imageRef of listAll.items) {
+            const metadata = await imageRef.getMetadata()
             metaArray.push(metadata);
-            metaArray.sort(sortByDate())
-            metaArray.forEach((item) => {
-                this.setState({
-                    listSelectFirst: [...this.state.listSelectFirst, <option key={"first_" + id} value={item.fullPath}>{item.fullPath}</option>]
-                });
-                id++;
-            })
-            id = 1;
-            metaArray.reverse().forEach((item) => {
-                this.setState({
-                    listSelectSecond: [...this.state.listSelectSecond, <option key={"second_" + id} value={item.fullPath}>{item.fullPath}</option>]
-                });
-                id++;
-            })
-
-        });
+        }
+        metaArray.sort(sortByDate())
+        metaArray.forEach((item) => {
+            this.setState({
+                listSelectFirst: [...this.state.listSelectFirst, <option key={"first_" + id} value={item.fullPath}>{item.fullPath}</option>]
+            });
+            id++;
+        })
+        id = 1;
+        metaArray.reverse().forEach((item) => {
+            this.setState({
+                listSelectSecond: [...this.state.listSelectSecond, <option key={"second_" + id} value={item.fullPath}>{item.fullPath}</option>]
+            });
+            id++;
+        })
     }
 
     loadToFirebase = () => {
