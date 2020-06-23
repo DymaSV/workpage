@@ -97,14 +97,14 @@ class CompareImages extends React.Component {
         metaArray.sort(sortByDate())
         metaArray.forEach((item) => {
             this.setState({
-                listSelectFirst: [...this.state.listSelectFirst, <option key={"first_" + id} value={item.fullPath}>{item.fullPath}</option>]
+                listSelectFirst: [...this.state.listSelectFirst, <option key={"first_" + id} value={item.fullPath}>{item.name}</option>]
             });
             id++;
         })
         id = 1;
         metaArray.reverse().forEach((item) => {
             this.setState({
-                listSelectSecond: [...this.state.listSelectSecond, <option key={"second_" + id} value={item.fullPath}>{item.fullPath}</option>]
+                listSelectSecond: [...this.state.listSelectSecond, <option key={"second_" + id} value={item.fullPath}>{item.name}</option>]
             });
             id++;
         })
