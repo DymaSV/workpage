@@ -27,8 +27,8 @@ class CompareImages extends React.Component {
             listOfFolders: [<option key={"first_0"} aria-label="None" value="">Folders</option>],
             loading: false,
             rootFolder: this.props.rootFolder,
-            choseFolder: ''
-
+            choseFolder: '',
+            photoName: ''
         };
     }
 
@@ -46,6 +46,11 @@ class CompareImages extends React.Component {
     }
 
     handleSecondImageSubmit = (event) => {
+        this.setState({
+            fileExtension: '',
+            photoName: ''
+        });
+
         let file = event.target.files[0]
         var reader = new window.FileReader();
         if (file) {
@@ -54,6 +59,7 @@ class CompareImages extends React.Component {
         reader.onloadend = () => {
             this.setState({ src2: [reader.result] });
             this.setState({ file: file });
+            this.setState({ fileExtension: this.state.file.name.split('.')[1] });
         }
     }
 
@@ -107,7 +113,10 @@ class CompareImages extends React.Component {
     loadToFirebase = () => {
         if (this.state.file) {
             const storageRef = firebaseStorage.ref(this.state.choseFolder);
-            const fileRef = storageRef.child(this.state.file.name);
+            let fileRef = storageRef.child(this.state.file.name);
+            if (this.state.photoName) {
+                fileRef = storageRef.child(this.state.photoName + '.' + this.state.fileExtension);
+            }
             this.setState({
                 loading: true
             });
@@ -153,6 +162,27 @@ class CompareImages extends React.Component {
             }).catch(function (error) {
                 console.log(error)
             });
+        }
+    }
+
+    handlePhotoNameChange = (event) => {
+        if (event.target.value) {
+            this.setState({ photoName: event.target.value });
+        } else {
+            this.setState({ photoName: '' });
+        }
+    }
+
+    handleSetName = () => {
+        if (this.state.file) {
+            let current_datetime = new Date()
+            let formatted_date = current_datetime.getDate() 
+            + "-" + (current_datetime.getMonth() + 1) 
+            + "-" + current_datetime.getFullYear() 
+            + "_" + current_datetime.getHours()
+            + current_datetime.getMinutes()
+            + current_datetime.getSeconds();
+            this.setState({ photoName: formatted_date });
         }
     }
 
@@ -204,7 +234,7 @@ class CompareImages extends React.Component {
                             </NativeSelect>
                         </Grid>
                         <Grid item xs={12} sm={4} style={{ textAlign: "center" }}>
-                            <TextField id="outline" label="Photo name" variant="outlined" size="small" />
+                            <TextField id="outline" label="Photo name" variant="outlined" size="small" value={this.state.photoName} onClick={this.handleSetName} onChange={this.handlePhotoNameChange} disabled={!this.state.file ? true : false}/>
                         </Grid>
                         <Grid item xs={12} style={{ padding: 5, textAlign: "center" }}>
                             {this.state.loading ? <div className={this.classes.root}>
