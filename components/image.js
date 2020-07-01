@@ -7,34 +7,63 @@ import Button from '@material-ui/core/Button';
 
 import ReactCrop from 'react-image-crop';
 import React from 'react';
-import { image64toCanvasRef } from './utils';
 
 class Image extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            crop: { aspect: 1 / 1 },
+            crop: '',
             setCrop: '',
             src1: this.props.src1,
             src2: this.props.src2,
-            open: false
+            open: false,
+            croppedImageUrl: null
         };
         this.imagePreviewCanvasRef = React.createRef();
     }
 
-    handleOnCrop = (crop) => {
-        // console.log(crop);
-        this.setState({ crop: crop });
+    onImageLoaded = image => {
+        this.imageRef = image;
     }
 
-    handleOnImageLoaded = (image) => {
-        // console.log(image);
+    onCropComplete = crop => {
+        if (crop.height > 0 && crop.width > 0) {
+            this.setState({ open: true });
+            this.makeClientCrop(crop);
+        }
     }
 
-    handleOnCropComlete = (crop, pixelCrop) => {
-        console.log(this.imagePreviewCanvasRef);
-        image64toCanvasRef(this.imagePreviewCanvasRef.current, this.state.src2, pixelCrop);
-        this.setState({ open: true });
+    onCropChange = (crop, percentCrop) => {
+        this.setState({ crop });
+    }
+
+    async makeClientCrop(crop) {
+        if (this.imageRef && crop.width && crop.height) {
+            this.getCroppedImg(
+                this.imageRef,
+                crop
+            );
+        }
+    }
+
+    getCroppedImg = (image, crop) => {
+        const canvas = this.imagePreviewCanvasRef.current;
+        const scaleX = image.naturalWidth / image.width;
+        const scaleY = image.naturalHeight / image.height;
+        canvas.width = crop.width;
+        canvas.height = crop.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(
+            image,
+            crop.x * scaleX,
+            crop.y * scaleY,
+            crop.width * scaleX,
+            crop.height * scaleY,
+            0,
+            0,
+            crop.width,
+            crop.height
+        );
     }
 
     handleClickOpen = () => {
@@ -66,17 +95,33 @@ class Image extends React.Component {
                         <ReactCrop
                             src={this.props.src2}
                             crop={this.state.crop}
-                            onChange={this.handleOnCrop}
-                            onImageLoaded={this.handleOnImageLoaded}
-                            onComplete={this.handleOnCropComlete}
+                            ruleOfThirds
+                            onImageLoaded={this.onImageLoaded}
+                            onComplete={this.onCropComplete}
+                            onChange={this.onCropChange}
                             alt="Image #2" />
-                        {/* <img id="myImg" src={this.props.src2} alt="Image #2" width="100%" /> */}
                     </Paper>
                 </Grid>
             </Grid>
-            <div>
-                <canvas ref={this.imagePreviewCanvasRef} style={{position: "absolute", border: "solid", borderColor: "#000000", width: "100px", height: "100px"}}></canvas>
-            </div>
+            <Dialog
+                open={this.state.open}
+                onClose={this.handleCloseCancel}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description">
+                <DialogContent>
+                    <div>
+                        <canvas ref={this.imagePreviewCanvasRef}></canvas>
+                    </div>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={this.handleCloseCancel} color="primary">
+                        Close
+                    </Button>
+                    <Button onClick={this.handleCloseSave} color="primary" autoFocus>
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     }
 }
