@@ -1,9 +1,9 @@
 function image64toCanvasRef(canvasRef, image64, pixelCrop) {
-    const canvas = canvasRef // document.createElement('canvas');
+    let canvas = canvasRef // document.createElement('canvas');
     canvas.width = pixelCrop.width;
     canvas.height = pixelCrop.height;
-    const ctx = canvas.getContext('2d');
-    const image = new Image()
+    let ctx = canvas.getContext('2d');
+    let image = new Image()
     image.src = image64
     image.onload = function () {
         ctx.drawImage(
