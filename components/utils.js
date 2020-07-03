@@ -1,5 +1,5 @@
 function image64toCanvasRef(canvasRef, image64, pixelCrop) {
-    let canvas = canvasRef // document.createElement('canvas');
+    let canvas = canvasRef;
     canvas.width = pixelCrop.width;
     canvas.height = pixelCrop.height;
     let ctx = canvas.getContext('2d');

@@ -14,22 +14,21 @@ class Image extends React.Component {
         this.state = {
             crop: '',
             setCrop: '',
-            src1: this.props.src1,
-            src2: this.props.src2,
-            open: false,
+            useCrop: this.props.useCrop,
             croppedImageUrl: null
         };
-        this.imagePreviewCanvasRef = React.createRef();
+        this.props.cropImage({
+            cropImage: this.onCropComplete
+        });
     }
 
     onImageLoaded = image => {
         this.imageRef = image;
     }
 
-    onCropComplete = crop => {
-        if (crop.height > 0 && crop.width > 0) {
-            this.setState({ open: true });
-            this.makeClientCrop(crop);
+    onCropComplete = (event) => {
+        if (this.state.crop.height > 0 && this.state.crop.width > 0) {
+            this.makeClientCrop(this.state.crop);
         }
     }
 
@@ -37,7 +36,7 @@ class Image extends React.Component {
         this.setState({ crop });
     }
 
-    async makeClientCrop(crop) {
+    makeClientCrop = (crop) => {
         if (this.imageRef && crop.width && crop.height) {
             this.getCroppedImg(
                 this.imageRef,
@@ -47,7 +46,7 @@ class Image extends React.Component {
     }
 
     getCroppedImg = (image, crop) => {
-        const canvas = this.imagePreviewCanvasRef.current;
+        const canvas = document.getElementById("myCanvas");
         const scaleX = image.naturalWidth / image.width;
         const scaleY = image.naturalHeight / image.height;
         canvas.width = crop.width;
@@ -66,18 +65,6 @@ class Image extends React.Component {
         );
     }
 
-    handleClickOpen = () => {
-        this.setState({ open: true });
-    }
-
-    handleCloseSave = () => {
-        this.setState({ open: false });
-    }
-
-    handleCloseCancel = () => {
-        this.setState({ open: false });
-    }
-
     render() {
         return <div>
             <Grid
@@ -87,41 +74,26 @@ class Image extends React.Component {
                 alignItems="center">
                 <Grid item xs={12} sm={6}>
                     <Paper elevation={3} style={{ textAlign: "center" }}>
-                        <img id="myImg" src={this.props.src1} alt="Image #1" width="100%" />
+                        <img id="myImg" key={this.props.src1} src={this.props.src1} alt="Image #1" width="100%" />
                     </Paper>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                     <Paper elevation={3} style={{ textAlign: "center" }}>
-                        <ReactCrop
-                            src={this.props.src2}
-                            crop={this.state.crop}
-                            ruleOfThirds
-                            onImageLoaded={this.onImageLoaded}
-                            onComplete={this.onCropComplete}
-                            onChange={this.onCropChange}
-                            alt="Image #2" />
+                        {this.state.useCrop
+                            ? <ReactCrop
+                                key={this.props.src2}
+                                src={this.props.src2}
+                                crop={this.state.crop}
+                                ruleOfThirds
+                                onImageLoaded={this.onImageLoaded}
+                                // onComplete={this.onCropComplete}
+                                onChange={this.onCropChange}
+                                alt="Image #2" />
+                            : <img id="myImg" key={this.props.src2} src={this.props.src2} alt="Image #2" width="100%" />
+                        }
                     </Paper>
                 </Grid>
             </Grid>
-            <Dialog
-                open={this.state.open}
-                onClose={this.handleCloseCancel}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description">
-                <DialogContent>
-                    <div>
-                        <canvas ref={this.imagePreviewCanvasRef}></canvas>
-                    </div>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={this.handleCloseCancel} color="primary">
-                        Close
-                    </Button>
-                    <Button onClick={this.handleCloseSave} color="primary" autoFocus>
-                        Save
-                    </Button>
-                </DialogActions>
-            </Dialog>
         </div>
     }
 }

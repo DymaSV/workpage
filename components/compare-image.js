@@ -1,5 +1,6 @@
 import Grid from '@material-ui/core/Grid';
 import Image from './image'
+import Canvas from './canvas'
 import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
 import LinearProgress from '@material-ui/core/LinearProgress';
@@ -28,8 +29,11 @@ class CompareImages extends React.Component {
             loading: false,
             rootFolder: this.props.rootFolder,
             choseFolder: '',
-            photoName: ''
+            photoName: '',
+            useCrop: false,
+            openCrop: false
         };
+        this.cropImageCallables = null;
     }
 
     classes = makeStyles((theme) => ({
@@ -48,7 +52,8 @@ class CompareImages extends React.Component {
     handleSecondImageSubmit = (event) => {
         this.setState({
             fileExtension: '',
-            photoName: ''
+            photoName: '',
+            useCrop: true
         });
 
         let file = event.target.files[0]
@@ -113,29 +118,51 @@ class CompareImages extends React.Component {
     loadToFirebase = () => {
         if (this.state.file) {
             const storageRef = firebaseStorage.ref(this.state.choseFolder);
-            let fileRef = storageRef.child(this.state.file.name);
+            let fileRef = this.getForatedDate();
+            if (this.state.file.name) {
+                fileRef = storageRef.child(this.state.file.name);
+            }
             if (this.state.photoName) {
                 fileRef = storageRef.child(this.state.photoName + '.' + this.state.fileExtension);
             }
             this.setState({
                 loading: true
             });
-            fileRef.put(this.state.file)
-                .then((snap) => {
-                    console.log('upload successful', snap);
-                    this.readFromFirebase(this.state.choseFolder);
-                    this.setState({
-                        loading: false
-                    });
-                })
-                .catch((err) => console.error('error uploading file', err));
+            if (this.state.file.name) {
+                fileRef.put(this.state.file)
+                    .then((snap) => {
+                        console.log('upload successful', snap);
+                        this.readFromFirebase(this.state.choseFolder);
+                        this.setState({
+                            loading: false
+                        });
+                    })
+                    .catch((err) => console.error('error uploading file', err));
+            } else {
+                fileRef.putString(this.state.file, 'data_url', { contentType: 'image/png' })
+                    .then((snap) => {
+                        console.log('upload successful', snap);
+                        this.readFromFirebase(this.state.choseFolder);
+                        this.setState({
+                            loading: false
+                        });
+                    })
+                    .catch((err) => console.error('error uploading file', err));
+            }
         }
     }
 
     handleFolderSelectChange = (event) => {
         if (event.target.value) {
             this.setState({ choseFolder: event.target.value });
-            this.readFromFirebase(event.target.value + '/')
+            this.setState({
+                loading: true
+            });
+            this.readFromFirebase(event.target.value + '/').then(() => {
+                this.setState({
+                    loading: false
+                });
+            })
         } else {
             this.setState({
                 choseFolder: '',
@@ -158,7 +185,7 @@ class CompareImages extends React.Component {
     handleSecondSelectChange = (event) => {
         if (event.target.value) {
             firebaseStorage.ref().child(event.target.value).getDownloadURL().then((url) => {
-                this.setState({ src2: url });
+                this.setState({ src2: url, useCrop: false });
             }).catch(function (error) {
                 console.log(error)
             });
@@ -175,16 +202,43 @@ class CompareImages extends React.Component {
 
     handleSetName = () => {
         if (this.state.file) {
-            let current_datetime = new Date()
-            let formatted_date = current_datetime.getDate() 
-            + "-" + (current_datetime.getMonth() + 1) 
-            + "-" + current_datetime.getFullYear() 
+            let name = this.getForatedDate();
+            this.setState({ photoName: name });
+        }
+    }
+
+    getForatedDate = () => {
+        let current_datetime = new Date()
+        let formatted_date = current_datetime.getDate()
+            + "-" + (current_datetime.getMonth() + 1)
+            + "-" + current_datetime.getFullYear()
             + "_" + current_datetime.getHours()
             + current_datetime.getMinutes()
             + current_datetime.getSeconds();
-            this.setState({ photoName: formatted_date });
-        }
+        return formatted_date;
     }
+
+    setImageCallables = (callables) => {
+        this.cropImageCallables = callables;
+    }
+
+    //-----------------------begin canvas events------------------------------------------------
+    handleFileChanged = (image64) => {
+        this.setState({ file: image64, src2: image64, useCrop: false, openCrop: false });
+    };
+
+    handleCropImage = () => {
+        this.setState({ openCrop: true })
+    };
+
+    handleCanvasEntered = () => {
+        this.cropImageCallables.cropImage(this.state.openCrop);
+    };
+
+    handleCloseCanvas = () => {
+        this.setState({ openCrop: false })
+    };
+    //----------------------- end canvas events------------------------------------------------
 
     render() {
         return <div>
@@ -234,8 +288,14 @@ class CompareImages extends React.Component {
                             </NativeSelect>
                         </Grid>
                         <Grid item xs={12} sm={4} style={{ textAlign: "center" }}>
-                            <TextField id="outline" label="Photo name" variant="outlined" size="small" value={this.state.photoName} onClick={this.handleSetName} onChange={this.handlePhotoNameChange} disabled={!this.state.file ? true : false}/>
+                            <TextField id="outline" label="Photo name" variant="outlined" size="small" value={this.state.photoName} onClick={this.handleSetName} onChange={this.handlePhotoNameChange} disabled={!this.state.file ? true : false} />
                         </Grid>
+                        {this.state.useCrop ? <Grid item xs={12} sm={4} style={{ textAlign: "center" }}>
+                            <Button variant="contained" component="label" color="secondary" size="small">
+                                Crop
+                            <input onClick={this.handleCropImage} style={{ display: "none" }} />
+                            </Button>
+                        </Grid> : ''}
                         <Grid item xs={12} style={{ padding: 5, textAlign: "center" }}>
                             {this.state.loading ? <div className={this.classes.root}>
                                 <LinearProgress />
@@ -246,8 +306,9 @@ class CompareImages extends React.Component {
                 </ExpansionPanelDetails>
             </ExpansionPanel>
             <Grid item xs={12} style={{ padding: 5 }}>
-                <Image src1={this.state.src1} src2={this.state.src2} />
+                <Image key={this.state.src2 + this.state.src1} cropImage={this.setImageCallables} useCrop={this.state.useCrop} src1={this.state.src1} src2={this.state.src2} />
             </Grid>
+            <Canvas openCrop={this.state.openCrop} onEntered={this.handleCanvasEntered} fileChanged={this.handleFileChanged} closeCanvas={this.handleCloseCanvas} />
         </div >
     }
 }
