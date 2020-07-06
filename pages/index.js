@@ -1,6 +1,6 @@
 
 import SingUp from '../components/sign-up'
-import CompareImages from '../components/compare-image'
+import Main from '../components/main'
 
 export default function Index() {
   return (
@@ -26,7 +26,7 @@ export class App extends React.Component {
   render() {
     if (this.state.isAuth) {
       return (
-        <CompareImages rootFolder={this.state.rootFolder} />
+        <Main rootFolder={this.state.rootFolder} />
       )
     } else {
       return (

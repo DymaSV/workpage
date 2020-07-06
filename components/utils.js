@@ -20,6 +20,17 @@ function image64toCanvasRef(canvasRef, image64, pixelCrop) {
     }
 }
 
+function getForatedDate() {
+    let current_datetime = new Date()
+    let formatted_date = current_datetime.getDate()
+        + "-" + (current_datetime.getMonth() + 1)
+        + "-" + current_datetime.getFullYear()
+        + "_" + current_datetime.getHours()
+        + current_datetime.getMinutes()
+        + current_datetime.getSeconds();
+    return formatted_date;
+}
+
 function sortByDate() {
     return (a, b) => {
         var dateA = new Date(a.timeCreated);
@@ -34,4 +45,4 @@ function sortByDate() {
     };
 }
 
-export { image64toCanvasRef, sortByDate }
+export { image64toCanvasRef, sortByDate, getForatedDate }
