@@ -16,7 +16,7 @@ function image64toCanvasRef(canvasRef, image64, pixelCrop) {
             0,
             pixelCrop.width,
             pixelCrop.height
-        )   
+        )
     }
 }
 
@@ -33,16 +33,24 @@ function getForatedDate() {
 
 function sortByDate() {
     return (a, b) => {
-        var dateA = new Date(a.timeCreated);
-        var dateB = new Date(b.timeCreated);
-        if (dateA < dateB) {
-            return -1;
-        }
-        if (dateA > dateB) {
-            return 1;
+        try {
+            var dateA = new Date(sliceNameToDate(a.name));
+            var dateB = new Date(sliceNameToDate(b.name));
+            if (dateA > dateB) {
+                return -1;
+            }
+            if (dateA < dateB) {
+                return 1;
+            }
+        } catch {
+            console.log("Name of photo has invalid format.")
         }
         return 0;
     };
+}
+
+function sliceNameToDate(name) {
+    return name.slice(0, name.indexOf('_'))
 }
 
 export { image64toCanvasRef, sortByDate, getForatedDate }
